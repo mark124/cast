@@ -1,0 +1,134 @@
+{
+  "text": "I think it's human nature to explore. I don't actually think you could stop people from doing it, even if you'd like to. I liked chemistry when I was in high school. And a lot of that came from one special teacher who just thought it was the best thing in the whole world. I went to MIT for undergrad and majored in chemistry. I got my PhD in polymer science and Engineering at the University of Massachusetts at Amherst. And then I started my four years of active duty in the U.S. air Force. And that continued for another 22 years. I was lucky enough to be selected by NASA in 1992 in a class of 24 people, first class, to have international astronauts. And it was one of the most amazing days of my life when I was told that I was selected. I've loved a lot of the jobs that I've gotten to do in between flights. Everything from payloads and habitability. That means checking out all the different experiments that are going to go up. And making sure that the space station is going to be a place that people really want to live. Do we need to have cabins? Do we need to have computers? Do we need to have a place to be alone? How do we design a space station that really works for people, for living? Part of what I think we try to do in the space program when we share our experience. Is to help people realize that when we explore, they explore too.",
+  "segments": [
+    {
+      "id": 0,
+      "start": 5.36,
+      "end": 7.76,
+      "text": "I think it's human nature to explore."
+    },
+    {
+      "id": 1,
+      "start": 8.32,
+      "end": 12.64,
+      "text": "I don't actually think you could stop people from doing it, even if you'd like to."
+    },
+    {
+      "id": 2,
+      "start": 13.12,
+      "end": 15.68,
+      "text": "I liked chemistry when I was in high school."
+    },
+    {
+      "id": 3,
+      "start": 15.919,
+      "end": 21.12,
+      "text": "And a lot of that came from one special teacher who just thought it was the best thing in the whole world."
+    },
+    {
+      "id": 4,
+      "start": 21.6,
+      "end": 25.52,
+      "text": "I went to MIT for undergrad and majored in chemistry."
+    },
+    {
+      "id": 5,
+      "start": 26.07,
+      "end": 31.11,
+      "text": "I got my PhD in polymer science and Engineering at the University of Massachusetts at Amherst."
+    },
+    {
+      "id": 6,
+      "start": 31.43,
+      "end": 34.67,
+      "text": "And then I started my four years of active duty in the U.S."
+    },
+    {
+      "id": 7,
+      "start": 34.67,
+      "end": 35.35,
+      "text": "air Force."
+    },
+    {
+      "id": 8,
+      "start": 35.75,
+      "end": 38.31,
+      "text": "And that continued for another 22 years."
+    },
+    {
+      "id": 9,
+      "start": 38.95,
+      "end": 48.39,
+      "text": "I was lucky enough to be selected by NASA in 1992 in a class of 24 people, first class, to have international astronauts."
+    },
+    {
+      "id": 10,
+      "start": 48.95,
+      "end": 54.64,
+      "text": "And it was one of the most amazing days of my life when I was told that I was selected."
+    },
+    {
+      "id": 11,
+      "start": 54.8,
+      "end": 58.24,
+      "text": "I've loved a lot of the jobs that I've gotten to do in between flights."
+    },
+    {
+      "id": 12,
+      "start": 58.56,
+      "end": 61.28,
+      "text": "Everything from payloads and habitability."
+    },
+    {
+      "id": 13,
+      "start": 61.52,
+      "end": 65.2,
+      "text": "That means checking out all the different experiments that are going to go up."
+    },
+    {
+      "id": 14,
+      "start": 65.52,
+      "end": 70.56,
+      "text": "And making sure that the space station is going to be a place that people really want to live."
+    },
+    {
+      "id": 15,
+      "start": 70.88,
+      "end": 72.24,
+      "text": "Do we need to have cabins?"
+    },
+    {
+      "id": 16,
+      "start": 72.64,
+      "end": 74.16,
+      "text": "Do we need to have computers?"
+    },
+    {
+      "id": 17,
+      "start": 74.24,
+      "end": 76.08,
+      "text": "Do we need to have a place to be alone?"
+    },
+    {
+      "id": 18,
+      "start": 76.24,
+      "end": 79.6,
+      "text": "How do we design a space station that really works for people, for living?"
+    },
+    {
+      "id": 19,
+      "start": 79.84,
+      "end": 84.64,
+      "text": "Part of what I think we try to do in the space program when we share our experience."
+    },
+    {
+      "id": 20,
+      "start": 85.36,
+      "end": 90.4,
+      "text": "Is to help people realize that when we explore, they explore too."
+    }
+  ],
+  "duration": 97.0,
+  "run_id": "742af303-cf5d-497a-aff1-d4face5d2f0c",
+  "_audio_hash": "347071f93870ce8a"
+}

@@ -1,0 +1,12 @@
+.venv
+**/__pycache__
+*.pyc
+.pytest_cache
+.git
+.env
+work/localized
+work/e2e
+work/lmnt_test
+work/server.log
+docs
+tests

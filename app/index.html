@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cast — one voice, every language</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121722; --panel2:#0e131c; --line:#1e2633;
+    --ink:#e6edf6; --dim:#8695ab; --faint:#5b6a80;
+    --amber:#f0a132; --amber-dim:#7a5a20; --green:#3fb970; --blue:#5aa9e6;
+    --red:#e5534b; --purple:#a284f0;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+    --sans:-apple-system,"Segoe UI",Inter,Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#141b28,transparent),var(--bg);
+    color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 22px 80px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}
+  h1{font-size:26px;margin:0;letter-spacing:-.02em;font-weight:680}
+  h1 .dot{color:var(--amber)}
+  .tag{color:var(--dim);font-size:14px}
+  .reach{margin-left:auto;text-align:right;font-family:var(--mono);font-size:12px;color:var(--dim);cursor:help}
+  .reach b{color:var(--amber);font-size:15px}
+  .sub{color:var(--dim);font-size:13px;margin:22px 0 8px;text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .src{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+  .src .q{color:var(--ink)}
+
+  .pick{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:16px}
+  .chip{background:#141b26;border:1px solid var(--line);color:var(--dim);border-radius:20px;
+    padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:var(--sans)}
+  .chip.on{background:#2a2113;border-color:var(--amber-dim);color:var(--amber)}
+  .pickctl{font-size:12px;color:var(--faint);font-family:var(--mono);margin-left:auto}
+  .pickctl a{color:var(--dim);cursor:pointer;text-decoration:underline;margin-left:8px}
+  .counter{font-size:15px;color:var(--dim);margin:2px 0 18px;font-family:var(--mono)}
+  .counter b{color:var(--amber);font-size:19px;font-variant-numeric:tabular-nums}
+  .voicesel{background:#141b26;color:var(--ink);border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-family:var(--sans);font-size:13px;width:100%;max-width:230px;cursor:pointer}
+
+  .controls{display:flex;gap:30px;flex-wrap:wrap}
+  .ctl{flex:1;min-width:230px;display:flex;flex-direction:column;gap:5px}
+  .ctl label{font-size:13px;color:var(--ink);font-weight:600}
+  .ctl label .term{color:var(--faint);font-weight:400;font-family:var(--mono);font-size:11px}
+  .slid{display:flex;gap:11px;align-items:center}
+  input[type=range]{accent-color:var(--amber);width:150px}
+  .val{font-family:var(--mono);color:var(--amber);font-size:14px;min-width:16px}
+  .hint{font-size:12.5px;color:var(--dim)}
+  .toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--dim);user-select:none;margin-top:18px}
+  .toggle input{accent-color:var(--red)}
+  .toggle b{color:var(--ink);font-weight:600}
+  .go{background:var(--amber);color:#20160a;border:0;border-radius:9px;padding:11px 24px;font-weight:700;
+    font-size:14px;cursor:pointer;margin-top:16px}
+  .go:disabled{opacity:.4;cursor:default}
+  .go.stopbtn{background:var(--red);color:#fff}
+  .meter{display:flex;gap:16px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:16px;flex-wrap:wrap}
+  .meter b{color:var(--ink)}
+  .bars{display:flex;gap:4px}
+  .slot{width:22px;height:8px;border-radius:2px;background:var(--line)}
+  .slot.on{background:var(--amber)}
+  .meter .note{color:var(--faint)}
+
+  .rows{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .lang{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    opacity:.5;transition:opacity .25s,border-color .25s}
+  .lang.active,.lang.done{opacity:1}
+  .lang.active{border-color:var(--amber-dim)}
+  .lang.done{border-color:#204a33}
+  .row{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:14px;padding:12px 15px}
+  .code{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--amber);text-align:center}
+  .lang.done .code{color:var(--green)}
+  .name{font-weight:600;font-size:15px}
+  .status{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:2px;min-height:16px}
+  .badge{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:1px}
+  .b-fail{background:#3a2140;color:var(--purple);border:1px solid #4d2c57}
+  .b-queue{background:#1a2230;color:var(--dim);border:1px solid var(--line)}
+  .b-live{background:#3a2c14;color:var(--amber);border:1px solid var(--amber-dim)}
+  .right{display:flex;align-items:center;gap:10px}
+  button.play{background:#16351f;color:var(--green);border:1px solid #204a33;border-radius:7px;
+    padding:7px 13px;font-size:12px;cursor:pointer;font-family:var(--mono)}
+  button.play.on{background:var(--green);color:#0b1f12;border-color:var(--green)}
+  .spin{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:6px;animation:p 1s infinite}
+  @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+  .legend{font-size:12.5px;color:var(--dim);margin-top:18px;line-height:1.5}
+  .legend b{color:var(--ink);font-weight:600}
+
+  /* inline follow-along captions */
+  .cap{border-top:1px solid var(--line);background:#0e141e;padding:20px 22px}
+  .cap[hidden]{display:none}
+  .cap-src{font-size:13px;color:var(--dim);font-style:italic;margin-bottom:10px}
+  .cap-tgt{font-size:22px;line-height:1.55;font-weight:600;letter-spacing:-.01em}
+  .cap-tgt.rtl{direction:rtl}
+  .cap-tgt w{color:#5b6a80;opacity:.5;transition:color .1s,opacity .1s}
+  .cap-tgt w.spoken{color:var(--ink);opacity:1}
+  .cap-tgt w.current{color:var(--amber);opacity:1}
+  .cap-ctrl{display:flex;align-items:center;gap:12px;margin-top:16px}
+  .capbtn{background:#2a2113;color:var(--amber);border:1px solid var(--amber-dim);border-radius:7px;
+    padding:6px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;min-width:84px}
+  .capbar{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+  .capfill{height:100%;width:0;background:var(--amber)}
+  .captime{font-family:var(--mono);font-size:11px;color:var(--dim);min-width:34px;text-align:right}
+  .capfull{background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;
+    padding:6px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}
+  .cap-list{margin-top:14px;border-top:1px solid var(--line);padding-top:8px;max-height:230px;overflow-y:auto}
+  .cap-list[hidden]{display:none}
+  .li{padding:8px 9px;border-radius:6px;cursor:pointer;border-left:3px solid transparent}
+  .li:hover{background:#131a26}
+  .li.on{background:#171f2c;border-left-color:var(--amber)}
+  .li-s{font-size:12px;color:var(--dim);font-style:italic}
+  .li-t{font-size:14px;color:var(--ink);margin-top:1px}
+  .li-t.rtl{direction:rtl}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cast<span class="dot">()</span></h1>
+    <span class="tag">cast one recording into every language &mdash; in the same voice</span>
+    <div class="reach" id="reach" title="The first language people grew up speaking — far more speak these as a second language too.">&nbsp;</div>
+  </header>
+
+  <div class="sub">The source</div>
+  <div class="panel src" id="src">Loading&hellip;</div>
+
+  <div class="sub">Try it</div>
+  <div class="panel">
+    <div class="pick" id="pick"></div>
+    <div class="counter" id="counter">pick languages to see who you can reach</div>
+    <div class="controls">
+      <div class="ctl">
+        <label>Voice</label>
+        <select id="voice" class="voicesel"></select>
+        <div class="hint">The speaker to reproduce in every language.</div>
+      </div>
+      <div class="ctl">
+        <label>Languages at once <span class="term">(concurrency)</span></label>
+        <div class="slid"><input type="range" id="conc" min="1" max="8" value="3"><span class="val" id="concV">3</span></div>
+        <div class="hint">How many to work on together. Lower = watch the rest queue.</div>
+      </div>
+      <div class="ctl">
+        <label>How much to translate <span class="term">(segments)</span></label>
+        <div class="slid"><input type="range" id="segs" min="1" max="21" value="3"><span class="val" id="segsV">3</span></div>
+        <div class="hint">Sentences to localize. 1 = quick sample.</div>
+      </div>
+    </div>
+    <label class="toggle"><input type="checkbox" id="breakEl"> <span><b>Simulate the main voice service failing</b> — it switches to a backup automatically.</span></label>
+    <div><button class="go" id="go">Localize</button></div>
+    <div class="meter">
+      <span>slots <span class="bars" id="slots"></span></span>
+      <span>working <b id="mActive">0</b></span>
+      <span>waiting <b id="mQueued">0</b></span>
+      <span>done <b id="mDone">0</b></span>
+      <span id="mFail" style="color:var(--purple)"></span>
+      <span class="note" id="meterNote"></span>
+    </div>
+  </div>
+
+  <div class="rows" id="rows"></div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const rowsEl = $('#rows');
+let rows = {}, concurrency = 3, currentES = null, LANGS = {};
+let running = false, currentJob = null, WORLD_POP = 8200;
+
+$('#conc').oninput = e => { concurrency = +e.target.value; $('#concV').textContent = e.target.value; drawSlots(0); };
+$('#segs').oninput = e => $('#segsV').textContent = e.target.value;
+
+function drawSlots(active){
+  const el = $('#slots'); el.innerHTML='';
+  for(let i=0;i<concurrency;i++){ const s=document.createElement('span'); s.className='slot'+(i<active?' on':''); el.appendChild(s); }
+}
+drawSlots(0);
+
+// ---- language picker ----
+function buildPicker(list){
+  const el = $('#pick');
+  el.innerHTML = list.map(l=>`<button class="chip" data-code="${l.code}">${l.name}</button>`).join('')
+    + `<span class="pickctl">pick: <a id="pAll">all</a><a id="pNone">none</a></span>`;
+  el.querySelectorAll('.chip').forEach(c => c.onclick = () => { c.classList.toggle('on'); afterPick(); });
+  $('#pAll').onclick = () => { el.querySelectorAll('.chip').forEach(c=>c.classList.add('on')); afterPick(); };
+  $('#pNone').onclick = () => { el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); afterPick(); };
+  afterPick();  // starts with nothing selected → Localize disabled until you pick
+}
+const selectedLangs = () => [...$('#pick').querySelectorAll('.chip.on')].map(c=>c.dataset.code);
+function syncGo(){ if(!running) $('#go').disabled = selectedLangs().length === 0; }
+function afterPick(){ syncGo(); updateCounter(); }
+
+// ---- live reach counter (climbs as you pick languages) ----
+let counterShown = 0, counterRAF = null;
+function updateCounter(){
+  const target = selectedLangs().reduce((s,c)=>s + (LANGS[c]?.l1 || 0), 0); // native speakers, millions
+  cancelAnimationFrame(counterRAF);
+  const from = counterShown, t0 = performance.now(), dur = 500;
+  const step = now => {
+    const p = Math.min(1, (now-t0)/dur);
+    counterShown = from + (target-from)*(1-Math.pow(1-p,3));
+    const b = (counterShown/1000).toFixed(2), pct = Math.round(100*counterShown/WORLD_POP);
+    $('#counter').innerHTML = selectedLangs().length
+      ? `reaching <b>${b}B</b> people in their own language &middot; <b>${pct}%</b> of the world`
+      : 'pick languages to see who you can reach';
+    if(p < 1) counterRAF = requestAnimationFrame(step);
+  };
+  counterRAF = requestAnimationFrame(step);
+}
+
+async function loadMeta(){
+  const r = await fetch('/api/languages'); const d = await r.json();
+  WORLD_POP = d.world_population_m || 8200;
+  d.demo_world.forEach(l => LANGS[l.code] = {name:l.name, rtl:l.rtl, l1:l.l1_m});
+  $('#voice').innerHTML = (d.voices||[]).map(v=>`<option value="${v.key}">${v.label}</option>`).join('');
+  buildPicker(d.demo_world);
+  $('#reach').innerHTML = `<b>${d.coverage.native_percent}%</b> of the world, natively<br>${d.coverage.languages} languages &middot; ${d.coverage.native_billions}B people`;
+  $('#legend').innerHTML = 'Each language: <b>transcribe</b> (AssemblyAI) &rarr; <b>translate</b> (Claude) &rarr; <b>speak</b> in the same voice, auto-backup if a provider fails (ElevenLabs&rarr;LMNT) &rarr; <b>stitch</b> to the original timing &rarr; <b>store</b> in Backblaze B2. Every step recorded.';
+  $('#src').innerHTML = '<span class="q">"I think it\'s human nature to explore. I don\'t actually think you could stop people from doing it&hellip;"</span> &nbsp;&mdash; NASA astronaut Catherine Coleman (public domain), 96s';
+}
+loadMeta();
+
+// ---- shared audio player ----
+const player = new Audio();
+let playingCode = null;
+function updatePlayButtons(){
+  document.querySelectorAll('.play').forEach(b => {
+    const playing = b.dataset.code === playingCode && !player.paused && !player.ended;
+    b.textContent = playing ? '❚❚ pause' : '▶ play & follow';
+    b.classList.toggle('on', playing);
+  });
+  const cb = cap && cap.panel ? cap.panel.querySelector('.capbtn') : null;
+  if(cb) cb.textContent = (!player.paused && !player.ended) ? '❚❚ pause' : '▶ resume';
+}
+player.addEventListener('play', updatePlayButtons);
+player.addEventListener('pause', updatePlayButtons);
+player.addEventListener('ended', updatePlayButtons);
+
+// ---- inline follow-along captions ----
+let cap = null, curSeg = -1;
+const esc = t => { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; };
+const fmt = t => { t=Math.floor(t||0); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); };
+
+function prepSeg(s){
+  let units = (s.target||'').split(/\s+/).filter(Boolean);
+  if(units.length <= 1 && (s.target||'').length > 6) units = Array.from(s.target); // CJK: per character
+  const weights = units.map(u => Math.max(1, u.length));
+  const total = weights.reduce((a,b)=>a+b,0) || 1;
+  let cum=0; const bounds = weights.map(w => { const a=cum/total; cum+=w; return [a, cum/total]; });
+  return {start:s.start, dur:Math.max(0.3, s.dur), src:s.source, target:s.target, units, bounds};
+}
+
+async function toggleCaptions(code, url){
+  const panel = rows[code].el.querySelector('.cap');
+  if(playingCode === code && !panel.hidden){ if(player.paused) player.play(); else player.pause(); return; }
+  document.querySelectorAll('.cap').forEach(c => { if(c !== panel) c.hidden = true; });
+
+  let data;
+  try { const r = await fetch('/api/segments/'+code); if(!r.ok) throw 0; data = await r.json(); }
+  catch(_) { panel.hidden = true; player.src=url; playingCode=code; player.play().catch(()=>{}); return; }
+
+  const meta = LANGS[code] || {name:code, rtl:false};
+  cap = { code, rtl:!!meta.rtl, segs: data.segments.map(prepSeg), panel };
+  curSeg = -1;
+  panel.querySelector('.cap-tgt').classList.toggle('rtl', cap.rtl);
+  renderFullList();
+  panel.hidden = false;
+  player.pause(); player.currentTime = 0; player.src = url; playingCode = code;
+  player.play().catch(()=>{});
+}
+
+function renderFullList(){
+  const list = cap.panel.querySelector('.cap-list');
+  list.innerHTML = cap.segs.map((s,i)=>
+    `<div class="li" data-i="${i}"><div class="li-s">${esc(s.src)}</div><div class="li-t${cap.rtl?' rtl':''}">${esc(s.target)}</div></div>`).join('');
+  list.querySelectorAll('.li').forEach(el => el.onclick = () => {
+    player.currentTime = cap.segs[+el.dataset.i].start + 0.02; player.play();
+  });
+}
+
+function showSeg(idx){
+  const s = cap.segs[idx];
+  cap.panel.querySelector('.cap-src').textContent = '“' + (s.src||'') + '”';
+  const sep = s.units.length && s.units[0].length === 1 ? '' : ' ';
+  cap.panel.querySelector('.cap-tgt').innerHTML = s.units.map(u => `<w>${esc(u)}</w>`).join(sep);
+  cap.panel.querySelectorAll('.cap-list .li').forEach((el,i)=>el.classList.toggle('on', i===idx));
+}
+
+player.addEventListener('timeupdate', () => {
+  if(!cap || cap.panel.hidden) return;
+  const t = player.currentTime, dur = player.duration || 0;
+  cap.panel.querySelector('.capfill').style.width = dur ? (100*t/dur)+'%' : '0';
+  cap.panel.querySelector('.captime').textContent = fmt(t);
+  let idx = cap.segs.findIndex(s => t >= s.start && t < s.start + s.dur);
+  if(idx < 0) for(let i=cap.segs.length-1;i>=0;i--){ if(t >= cap.segs[i].start){ idx=i; break; } }
+  if(idx < 0) idx = 0;
+  if(idx !== curSeg){ curSeg = idx; showSeg(idx); }
+  const s = cap.segs[idx];
+  const frac = Math.min(1, Math.max(0, (t - s.start)/s.dur));
+  const spans = cap.panel.querySelector('.cap-tgt').children;
+  for(let i=0;i<spans.length;i++){
+    const [a,b] = s.bounds[i] || [1,1];
+    spans[i].className = frac >= b ? 'spoken' : (frac >= a ? 'current' : '');
+  }
+});
+
+// ---- rows ----
+function mkRow(code, name){
+  const el = document.createElement('div');
+  el.className = 'lang'; el.dataset.code = code;
+  el.innerHTML = `
+    <div class="row">
+      <div class="code">${code.toUpperCase()}</div>
+      <div><div class="name">${name||code} <span class="badge b-queue" data-badge>queued</span></div>
+        <div class="status" data-status>waiting for a slot…</div></div>
+      <div class="right" data-right></div>
+    </div>
+    <div class="cap" hidden>
+      <div class="cap-src"></div>
+      <div class="cap-tgt"></div>
+      <div class="cap-ctrl">
+        <button class="capbtn">❚❚ pause</button>
+        <div class="capbar"><div class="capfill"></div></div>
+        <span class="captime">0:00</span>
+        <button class="capfull">▾ full text</button>
+      </div>
+      <div class="cap-list" hidden></div>
+    </div>`;
+  rowsEl.appendChild(el);
+  el.querySelector('.capbtn').onclick = () => { if(player.paused) player.play(); else player.pause(); };
+  el.querySelector('.capfull').onclick = (e) => {
+    const list = el.querySelector('.cap-list'); list.hidden = !list.hidden;
+    e.target.textContent = (list.hidden ? '▾' : '▴') + ' full text';
+  };
+  rows[code] = {el, name};
+  return rows[code];
+}
+
+let counts = {active:0, queued:0, done:0, fail:0};
+function refreshMeter(){
+  $('#mActive').textContent = counts.active;
+  $('#mQueued').textContent = counts.queued;
+  $('#mDone').textContent = counts.done;
+  $('#mFail').textContent = counts.fail ? `${counts.fail} used the backup voice` : '';
+  drawSlots(counts.active);
+}
+function setBadge(code, cls, text){ const b = rows[code].el.querySelector('[data-badge]'); b.className='badge '+cls; b.textContent=text; }
+function setStatus(code, html){ rows[code].el.querySelector('[data-status]').innerHTML = html; }
+
+function handle(ev){
+  if(ev.type==='transcript'){
+    if(ev.preview && ev.preview.length)
+      $('#src').innerHTML = `<span class="q">"${ev.preview[0]}"</span> &nbsp;&mdash; NASA astronaut Catherine Coleman (public domain) &middot; ${ev.segments} sentence(s) &middot; ${ev.duration}s`;
+  } else if(ev.type==='queued'){
+    mkRow(ev.language, ev.name); counts.queued++; refreshMeter();
+  } else if(ev.type==='active'){
+    rows[ev.language].el.classList.add('active');
+    setBadge(ev.language,'b-live','live'); setStatus(ev.language,'<span class="spin"></span>starting…');
+    counts.queued--; counts.active++; refreshMeter();
+  } else if(ev.type==='progress'){
+    const code=ev.language; if(!rows[code]) return;
+    if(ev.stage==='translate.start') setStatus(code,'<span class="spin"></span>translating with Claude…');
+    else if(ev.stage==='translate.done') setStatus(code,`translated ${ev.segments} sentence(s)`);
+    else if(ev.stage==='speak.start') setStatus(code,`<span class="spin"></span>speaking sentence ${ev.segment+1}…`);
+    else if(ev.stage==='speak.done'){
+      const prov = ev.provider==='lmnt' ? '<span style="color:var(--purple)">backup voice</span>' : 'ElevenLabs';
+      setStatus(code,`spoke sentence ${ev.segment+1} via ${prov}${ev.failed_over?' <span class="badge b-fail">switched</span>':''}`);
+      if(ev.failed_over){ counts.fail++; refreshMeter(); }
+    }
+    else if(ev.stage==='assemble.start') setStatus(code,'<span class="spin"></span>stitching to the timing…');
+    else if(ev.stage==='assemble.done') setStatus(code,'track ready');
+  } else if(ev.type==='done'){
+    const r=rows[ev.language]; r.el.classList.remove('active'); r.el.classList.add('done');
+    r.el.querySelector('[data-badge]').style.display='none';
+    const foMsg = ev.failovers ? ` <span class="badge b-fail">used backup voice</span>` : '';
+    setStatus(ev.language, `${ev.segments} sentence(s) &middot; click to read along${foMsg}`);
+    const right = r.el.querySelector('[data-right]');
+    right.innerHTML = `<button class="play" data-code="${ev.language}">▶ play & follow</button>`;
+    right.querySelector('.play').onclick = ()=>toggleCaptions(ev.language, ev.audio);
+    counts.active--; counts.done++; refreshMeter();
+  } else if(ev.type==='skipped'){
+    const r=rows[ev.language]; if(r){ setStatus(ev.language, 'stopped'); r.el.querySelector('[data-badge]').textContent='stopped'; }
+    counts.queued--; refreshMeter();
+  } else if(ev.type==='error'){
+    setStatus(ev.language, `<span style="color:var(--red)">error: ${ev.message}</span>`); counts.active--; refreshMeter();
+  } else if(ev.type==='all_done'){
+    endRun();
+    $('#meterNote').textContent = counts.done===0 ? 'stopped.' :
+      (counts.fail ? 'every language finished — even the ones whose main voice "failed".' : 'done — click any language to read along.');
+  } else if(ev.type==='fatal'){
+    $('#src').innerHTML = `<span style="color:var(--red)">${ev.message}</span>`; endRun();
+  }
+}
+
+function endRun(){
+  running=false; currentJob=null;
+  $('#go').classList.remove('stopbtn'); $('#go').textContent='Localize'; $('#go').disabled=false; syncGo();
+  if(currentES){ currentES.close(); currentES=null; }
+}
+
+async function startJob(){
+  const langs = selectedLangs();
+  if(!langs.length) return;
+  running=true;
+  player.pause(); player.currentTime=0; playingCode=null; cap=null;
+  rowsEl.innerHTML=''; rows={}; counts={active:0,queued:0,done:0,fail:0}; refreshMeter();
+  $('#meterNote').textContent='';
+  $('#go').textContent='◼ Stop'; $('#go').classList.add('stopbtn'); $('#go').disabled=false;
+  const r = await fetch('/api/start',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({languages:langs, voice:$('#voice').value, concurrency:+$('#conc').value, max_segments:+$('#segs').value, break_elevenlabs:$('#breakEl').checked})});
+  const {job_id} = await r.json(); currentJob = job_id;
+  if(currentES){ currentES.close(); }
+  currentES = new EventSource(`/api/events/${job_id}`);
+  currentES.onmessage = e => { try{ handle(JSON.parse(e.data)); }catch(_){} };
+  currentES.addEventListener('close', ()=>{ if(currentES){ currentES.close(); currentES=null; } });
+}
+
+async function stopJob(){
+  $('#go').textContent='Stopping…'; $('#go').disabled=true;
+  if(currentJob) { try { await fetch('/api/stop/'+currentJob, {method:'POST'}); } catch(_){} }
+  // languages already in flight finish; queued ones skip; all_done -> endRun()
+}
+
+$('#go').onclick = () => running ? stopJob() : startJob();
+</script>
+</body>
+</html>
