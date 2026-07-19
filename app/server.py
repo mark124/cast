@@ -190,7 +190,9 @@ def audio(code: str):
         return resp
     resp = Response(data, mimetype="audio/mpeg")
     resp.headers["Accept-Ranges"] = "bytes"
-    resp.headers["Cache-Control"] = "public, max-age=3600"
+    # Each run overwrites <code>.mp3 at a stable URL, so never let the browser serve a
+    # cached previous take (it would play old audio under freshly refetched captions).
+    resp.headers["Cache-Control"] = "no-store"
     return resp
 
 

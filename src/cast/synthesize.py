@@ -168,12 +168,12 @@ def speak(
 # identical-across-providers voice needs one cloned sample uploaded to both, which
 # is what a real creator does with their own voice.
 VOICES: dict[str, Voice] = {
-    "sarah":  Voice("EXAVITQu4vr4xnSDxMaL", "amy",     "Sarah — warm, female"),
-    "lily":   Voice("pFZP5JQG7iQjIQuC4Bku", "lily",    "Lily — British, female"),
-    "bella":  Voice("hpp4J3VqNfWAUOO0d1Us", "bella",   "Bella — bright, female"),
-    "george": Voice("JBFqnCBsd6RMkjVDRZzb", "james",   "George — storyteller, male"),
-    "daniel": Voice("onwK4e9ZLuTAKqWW03F9", "daniel",  "Daniel — broadcaster, male"),
-    "brian":  Voice("nPczCjzI2devNBz1zQrb", "brandon", "Brian — deep, male"),
+    "sarah":  Voice("EXAVITQu4vr4xnSDxMaL", "amy",     "Sarah (warm, female)"),
+    "lily":   Voice("pFZP5JQG7iQjIQuC4Bku", "lily",    "Lily (British, female)"),
+    "bella":  Voice("hpp4J3VqNfWAUOO0d1Us", "bella",   "Bella (bright, female)"),
+    "george": Voice("JBFqnCBsd6RMkjVDRZzb", "james",   "George (storyteller, male)"),
+    "daniel": Voice("onwK4e9ZLuTAKqWW03F9", "daniel",  "Daniel (broadcaster, male)"),
+    "brian":  Voice("nPczCjzI2devNBz1zQrb", "brandon", "Brian (deep, male)"),
 }
 DEFAULT_VOICE = "daniel"
 
