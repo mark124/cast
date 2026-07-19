@@ -120,6 +120,30 @@ def mux_video(
     return out_path
 
 
+def apply_tempo(path: str | Path, factor: float) -> Path:
+    """Ease (or quicken) an audio file's pace in place, without changing pitch.
+
+    factor < 1 slows down, > 1 speeds up; ~1.0 is a no-op. Localized speech tends to
+    run fast because translations expand over the source (Romance and German add
+    ~20-30% more words for the same meaning) and the TTS packs them into the same air.
+    A gentle slow-down lets a dub breathe. ffmpeg's atempo preserves pitch, so the
+    cloned voice identity is unchanged. atempo takes 0.5-2.0 in one pass, which covers
+    every pace we use.
+    """
+    path = Path(path)
+    if abs(factor - 1.0) < 1e-3:
+        return path
+    tmp = path.with_name(f"{path.stem}.tempo{path.suffix}")
+    _run([
+        FFMPEG, "-y", "-i", str(path.resolve()),
+        "-filter:a", f"atempo={factor:.4f}",
+        "-c:a", "libmp3lame", "-q:a", "2",
+        str(tmp.resolve()),
+    ])
+    tmp.replace(path)
+    return path
+
+
 def probe_duration(path: str | Path) -> float:
     ffprobe = shutil.which("ffprobe") or "ffprobe"
     proc = subprocess.run(

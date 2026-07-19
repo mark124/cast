@@ -16,10 +16,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from .assemble import Placement, assemble_track, mux_video, probe_duration
+from .assemble import Placement, apply_tempo, assemble_track, mux_video, probe_duration
 from .genblaze_anthropic import text_of
 from .languages import Language, get
-from .synthesize import Voice, speak
+from .synthesize import Voice, pace_for, speak
 from .transcribe import Transcript
 from .translate import translate_segments
 
@@ -66,8 +66,7 @@ def localize_language(
     by_id = {t["id"]: t["text"] for t in translated}
     emit("translate.done", segments=len(translated))
 
-    # 2. speak each segment, placing it at its source start time
-    placements: list[Placement] = []
+    # 2. speak each segment
     texts: list[str] = []
     failovers = 0
     b2_urls: list[str] = []
@@ -98,38 +97,56 @@ def localize_language(
             None if url.startswith("http") else Path(_fs_from_file_url(url))
         )
         if local and local.exists():
-            placements.append(Placement(start=seg.start, audio_path=local))
+            # Ease the wordier languages so the dub doesn't sound rushed. Audio-only
+            # mode only (a video mux keeps segment lengths intact, or the dub drifts
+            # off the picture). Placement and caption timing are both derived from this
+            # eased file below, so the karaoke highlight stays in sync automatically.
+            if source_video is None:
+                apply_tempo(local, pace_for(lang.code))
             recorded.append((seg, text, local))
         emit("speak.done", segment=seg.id, provider=res.winner.provider.name,
              failed_over=res.failed_over)
 
-    # 3. assemble one timed track. Zero-base for an audio-only deliverable so it
-    # starts promptly; keep absolute source timing when we're muxing onto a video.
-    zero_base = source_video is None
-    emit("assemble.start", segments=len(placements))
+    # 3. assemble one timed track, and record where each segment lands so the UI can
+    # follow along. Two modes:
+    #   audio-only -> lay segments end to end, preserving the *pauses* that separated
+    #                 them in the source but never overlapping, so an eased or long dub
+    #                 just extends the timeline instead of bleeding into the next line.
+    #   video mux  -> keep absolute source timing so the dub tracks the picture.
+    # Caption start/dur come from the same timeline and files, so the karaoke highlight
+    # is exact either way.
+    lead_in = 0.25
     audio_out = out_dir / lang.code / f"{lang.code}.mp3"
-    assemble_track(
-        placements, audio_out,
-        total_duration=transcript.duration or None,
-        zero_base=zero_base,
-    )
+    emit("assemble.start", segments=len(recorded))
+    placements: list[Placement] = []
+    caption_segments: list[dict] = []
+
+    if source_video is None:
+        cursor = lead_in
+        prev_source_end: float | None = None
+        for s, t, local in recorded:
+            if prev_source_end is not None:
+                cursor += max(0.0, s.start - prev_source_end)  # preserve source silence
+            dur = probe_duration(local)
+            placements.append(Placement(start=cursor, audio_path=local))
+            caption_segments.append({
+                "id": s.id, "source": s.text, "target": t,
+                "start": round(cursor, 3), "dur": round(dur, 3),
+            })
+            cursor += dur
+            prev_source_end = s.end
+        assemble_track(placements, audio_out, total_duration=None, zero_base=False)
+    else:
+        for s, t, local in recorded:
+            placements.append(Placement(start=s.start, audio_path=local))
+            caption_segments.append({
+                "id": s.id, "source": s.text, "target": t,
+                "start": round(s.start, 3), "dur": round(probe_duration(local), 3),
+            })
+        assemble_track(placements, audio_out,
+                       total_duration=transcript.duration or None, zero_base=False)
     emit("assemble.done", path=str(audio_out))
 
-    # Caption track: where each segment lands in the *assembled* audio, plus the
-    # source and translated text, so the UI can follow along as it plays. The
-    # rebase must match assemble_track's, or the highlight drifts.
-    lead_in = 0.25
-    base = max(0.0, min(s.start for s, _, _ in recorded) - lead_in) if (zero_base and recorded) else 0.0
-    caption_segments = [
-        {
-            "id": s.id,
-            "source": s.text,
-            "target": t,
-            "start": round(max(0.0, s.start - base), 3),
-            "dur": round(probe_duration(local), 3),
-        }
-        for s, t, local in recorded
-    ]
     (out_dir / lang.code / "segments.json").write_text(
         json.dumps({"language": lang.code, "segments": caption_segments}, ensure_ascii=False),
         encoding="utf-8",

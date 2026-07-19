@@ -32,6 +32,28 @@ from .genblaze_lmnt2 import LmntTTSProvider
 ELEVEN_MODEL = "eleven_flash_v2_5"
 LMNT_MODEL = "blizzard"
 
+# Voice settings for the ElevenLabs leg. similarity_boost is pushed high so a cloned
+# voice hews tightly to the source sample (the demo's hero is a real person's clone,
+# and the default ~0.75 smooths toward a generic-clean voice); stability slightly
+# below the 0.5 default keeps natural expressiveness without introducing artifacts.
+ELEVEN_SIMILARITY_BOOST = 0.9
+ELEVEN_STABILITY = 0.4
+
+# Per-language speaking pace (1.0 = provider default; <1 slows without changing pitch,
+# via ffmpeg atempo in assemble.apply_tempo). Translations into the wordier languages
+# expand ~20-30% over English and the TTS crams them into the same air, so those dubs
+# sound rushed; easing them to 0.9 lets them breathe. English is the source and is
+# never re-spoken, so it stays at 1.0. Confirmed by ear against Spanish at 0.90.
+PACE_BY_LANG: dict[str, float] = {
+    "es": 0.90, "fr": 0.90, "pt": 0.90, "it": 0.90, "de": 0.90, "ro": 0.90,
+}
+DEFAULT_PACE = 1.0
+
+
+def pace_for(code: str) -> float:
+    """The speaking-pace factor for a language code (1.0 if not eased)."""
+    return PACE_BY_LANG.get(code, DEFAULT_PACE)
+
 
 @dataclass(frozen=True)
 class Voice:
@@ -78,6 +100,9 @@ def tts_chain(
             params={
                 "voice_id": voice.elevenlabs_id,
                 "output_format": "mp3_44100_128",
+                # Hug the source sample so a cloned voice sounds like the real person.
+                "similarity_boost": ELEVEN_SIMILARITY_BOOST,
+                "stability": ELEVEN_STABILITY,
                 # with_timestamps is intentionally OFF: the shipped connector's
                 # timestamp path is broken against elevenlabs SDK 2.x — it reads
                 # the AudioWithTimestampsResponse object as a dict, and the field
@@ -150,7 +175,7 @@ VOICES: dict[str, Voice] = {
     "daniel": Voice("onwK4e9ZLuTAKqWW03F9", "daniel",  "Daniel — broadcaster, male"),
     "brian":  Voice("nPczCjzI2devNBz1zQrb", "brandon", "Brian — deep, male"),
 }
-DEFAULT_VOICE = "sarah"
+DEFAULT_VOICE = "daniel"
 
 
 def _load_custom_voices() -> None:
