@@ -2,7 +2,7 @@
 
 Split into three parts so you can read (or play) the voiceover straight through. Beats
 are numbered and line up across all three parts, so action 3 and screen 3 go with
-voiceover 3. Beat 6 is split into 6a (setup) and 6b (close) with a live moment between.
+voiceover 3.
 
 - **Part 1, Voiceover:** the spoken track. It is also generated as audio in Daniel's
   voice (`work/voice/vo_*.mp3`), so you can lay it over the screen recording instead of
@@ -59,17 +59,10 @@ Keep the final cut under 3:00 (the rules are strict). No copyrighted music.
 > result content addressed, with a manifest that traces it back to the master it came
 > from, so you always know exactly what was generated, and from what.
 
-**6a. The setup (before the live moment)**
-> One more thing. Cast doesn't only localize this clip. I can type any line. So let me
-> type one I definitely cannot say myself.
-
-*(Now the live moment happens on screen: you type a line, localize it, and Cast speaks it
-back in the same voice. See Part 2 and Part 3, beat 6.)*
-
-**6b. The close (after the live moment)**
-> Same voice. One recording in, your whole audience out, in a voice you choose, or clone
-> as your own. Reliable across providers, auditable end to end, and built on Genblaze and
-> Backblaze B2. It is live right now, at cast dot rowset dot co.
+**6. Close**
+> So that is Cast. One recording in, your whole audience out, in a voice you choose, or
+> clone as your own. Reliable across providers, auditable end to end, and built on Genblaze
+> and Backblaze B2. It is live right now, at cast dot rowset dot co.
 
 ---
 
@@ -86,10 +79,7 @@ back in the same voice. See Part 2 and Part 3, beat 6.)*
 5. On a finished language (Spanish), click **play & follow**, let a sentence play, then
    click **full text**. Switch to the B2 tab and open a file under `cast/` and a
    `manifests/` JSON.
-6. Back on Cast, click into the **type your own line** box and type:
-   **I don't speak a word of French.** Make sure only **French** is selected, and click
-   **Localize**. When the French clip is ready, click **play & follow** so it speaks the
-   line back. (This is the punchline; let it play in full before the close.)
+6. Switch back to the Cast dashboard showing the finished languages.
 
 ---
 
@@ -110,16 +100,14 @@ back in the same voice. See Part 2 and Part 3, beat 6.)*
    amber in time with the voice, a moving scrubber, the full transcript. Then the B2 view:
    content-addressed files under `cast/assets/` and a `manifests/<run_id>.json` showing
    `parent_run_id` back to the master, plus the provider, model, and sha256.
-6. The typed line appears in the source panel as "your line." One French row runs and
-   stores to B2, then plays back "Je ne parle pas un mot de français" in the same Daniel
-   voice that has narrated the whole video. (Optional caption: "same voice.")
+6. The completed green rows and the reach counter, back on the main view.
 
 ---
 
 ## Beats to hit (the rubric, without naming it)
 
-- **Real-world utility:** named audience, their real problem, and now they can type their
-  own line, so it is a tool, not a fixed demo.
+- **Real-world utility:** named audience (podcasters, audiobook publishers, creators),
+  their real problem, would actually use it.
 - **Production readiness:** the failover moment, backpressure, "no lost work."
 - **B2, meaningfully:** system of record, content-addressed, manifest lineage back to the
   master, the "stored in B2" tag on every row.
@@ -129,7 +117,7 @@ back in the same voice. See Part 2 and Part 3, beat 6.)*
 ## Do and don't
 
 - Do run real jobs on camera; the video must show the app actually working.
-- Do let the failover moment and the closing punchline land; those are the memorable beats.
+- Do let the failover moment land; it is the most memorable beat.
 - Do keep the failover run small (two languages) so the "switched" badges are easy to see.
 - Don't claim lip-sync or native fluency; the pitch is one voice identity across languages.
-- Don't rush the reach counter, the queue drain, or the final French line.
+- Don't rush the reach counter or the queue drain; those two visuals do a lot of work.
