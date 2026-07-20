@@ -16,9 +16,10 @@ line again; it trims cleanly.
 ## Setup (before you record)
 
 - Open **cast.rowset.co** and hard-refresh. Voice is already set to **Daniel**.
-- In a second browser tab, open the **Backblaze B2 web console**, navigate into the
-  bucket, and drill to the `cast/` prefix so the generated files and a `manifests/`
-  JSON are one click away.
+- In a second browser tab, open the **Backblaze B2 web console** and Browse Files in the
+  bucket **polyglot-mark-trans-lator**, into the `cast/` prefix. You will see
+  `cast/assets/` (the generated audio, keyed by content hash) and `cast/manifests/`
+  (one JSON per run). Open a recent manifest ahead of time so it is one click away.
 - Do one throwaway run first (pick one language, Localize) so the providers are warm,
   then refresh before recording.
 - Screen-record at 1080p, browser zoomed to about 110 percent. Optional webcam box in a
