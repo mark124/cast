@@ -54,11 +54,20 @@ def b2_sink(
     prefix: str = DEFAULT_PREFIX,
     lock_days: int | None = None,
     backend: Any = None,
+    allowed_roots: list[Any] | None = None,
 ) -> ObjectStorageSink:
     """A content-addressable B2 sink. Pass lock_days to make manifests immutable.
 
     lock_days requires Object Lock enabled on the bucket; leave it None until the
     bucket has it turned on.
+
+    allowed_roots widens the local-file allowlist the sink enforces before uploading a
+    file:// asset. The transfer only trusts the system temp dir by default, but our TTS
+    segments are written under the app's work/ dir, so without this the local-file to B2
+    transfer is denied ("outside allowed directories"). 0.3.4's ObjectStorageSink does
+    not surface allowed_roots, so we set it on the underlying AssetTransfer, which reads
+    self._allowed_roots at transfer time. (Upstream gap: the kwarg exists on AssetTransfer
+    but not on ObjectStorageSink.)
     """
     backend = backend or b2_backend()
     manifest_lock = None
@@ -68,9 +77,14 @@ def b2_sink(
         retain_until = datetime.now(timezone.utc) + timedelta(days=lock_days)
         manifest_lock = ObjectLockConfig(retain_until=retain_until)
 
-    return ObjectStorageSink(
+    sink = ObjectStorageSink(
         backend,
         prefix=prefix,
         key_strategy=KeyStrategy.CONTENT_ADDRESSABLE,
         manifest_lock=manifest_lock,
     )
+    if allowed_roots:
+        transfer = getattr(sink, "_transfer", None)
+        if transfer is not None:
+            transfer._allowed_roots = [Path(r).resolve() for r in allowed_roots]
+    return sink

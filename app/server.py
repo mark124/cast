@@ -39,6 +39,7 @@ from flask import Flask, Response, jsonify, request  # noqa: E402
 
 from cast.languages import DEMO_WORLD, coverage, get  # noqa: E402
 from cast.localize import localize_language  # noqa: E402
+from cast.storage import b2_backend, b2_sink  # noqa: E402
 from cast.synthesize import DEFAULT_VOICE, VOICES  # noqa: E402
 from cast.transcribe import transcribe  # noqa: E402
 
@@ -74,6 +75,16 @@ def _run_job(job: Job) -> None:
         job.emit(type="transcript", segments=len(transcript.segments),
                  duration=round(transcript.duration, 1),
                  preview=[s.text for s in transcript.segments[:3]])
+        # B2 is the pipeline's system of record. Build the backend once (a single
+        # preflight), then hand each language its own sink on the shared, thread-safe
+        # S3 client. If B2 is unreachable we still localize; we just skip storage.
+        b2 = None
+        try:
+            b2 = b2_backend()
+            job.emit(type="b2_status", ok=True)
+        except Exception as exc:
+            job.emit(type="b2_status", ok=False, message=str(exc)[:140])
+
         for code in job.langs:
             job.emit(type="queued", language=code, name=get(code).name)
 
@@ -90,13 +101,22 @@ def _run_job(job: Job) -> None:
                 job.emit(type="progress", stage=stage, **detail)
 
             el_key = "sk_elevenlabs_down_for_demo" if job.break_el else None
+            sink = None
+            if b2 is not None:
+                try:
+                    # allowed_roots lets the sink read our TTS segments out of work/
+                    # (it only trusts the system temp dir otherwise).
+                    sink = b2_sink(backend=b2, allowed_roots=[OUT])
+                except Exception:
+                    sink = None
             try:
                 result = localize_language(
                     transcript, code, voice=job.voice, out_dir=OUT,
-                    parent=run, on_progress=prog, elevenlabs_key=el_key,
+                    parent=run, on_progress=prog, elevenlabs_key=el_key, sink=sink,
                 )
                 job.emit(type="done", language=code, failovers=result.failovers,
                          segments=len(result.segment_texts),
+                         stored=len(result.b2_urls),
                          audio=f"/api/audio/{code}")
             except Exception as exc:  # keep one language's failure from killing the fan-out
                 job.emit(type="error", language=code, message=str(exc)[:200])

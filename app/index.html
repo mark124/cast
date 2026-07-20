@@ -428,7 +428,8 @@ function handle(ev){
     r.el.classList.remove('active'); r.el.classList.add('done');
     r.el.querySelector('[data-badge]').style.display='none';
     const foMsg = ev.failovers ? ` <span class="badge b-fail">used backup voice</span>` : '';
-    setStatus(ev.language, `${ev.segments} sentence(s) &middot; click to read along${foMsg}`);
+    const b2Msg = ev.stored ? ` &middot; <span style="color:var(--green)">stored ${ev.stored} in B2</span>` : '';
+    setStatus(ev.language, `${ev.segments} sentence(s) &middot; click to read along${b2Msg}${foMsg}`);
     const right = r.el.querySelector('[data-right]');
     right.innerHTML = `<button class="play" data-code="${ev.language}">▶ play & follow</button>`;
     right.querySelector('.play').onclick = ()=>toggleCaptions(ev.language, ev.audio);
