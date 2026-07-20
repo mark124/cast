@@ -292,6 +292,22 @@ def languages():
     })
 
 
+# The Cast wordmark's amber "()" on a dark tile, as an inline SVG favicon.
+_FAVICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+    '<rect width="32" height="32" rx="7" fill="#0e131c"/>'
+    '<text x="16" y="23" text-anchor="middle" '
+    'font-family="ui-monospace,SFMono-Regular,Menlo,monospace" '
+    'font-size="22" font-weight="700" fill="#f0a132">()</text></svg>'
+)
+
+
+@app.get("/favicon.svg")
+@app.get("/favicon.ico")
+def favicon():
+    return Response(_FAVICON, mimetype="image/svg+xml")
+
+
 @app.get("/")
 def index():
     return Response((Path(__file__).parent / "index.html").read_text(encoding="utf-8"),
