@@ -33,24 +33,24 @@ Each step is either **[VO]** play a voiceover clip, **[SOUND]** trigger an app s
 **[DO]** an on-screen action. Let each clip finish before the next step unless it says
 "while it plays."
 
-1. **[VO] vo_1_hook** — page sitting at rest, do not touch anything.
+1. **[VO] vo_1_hook**: page sitting at rest, do not touch anything.
 2. **[VO] vo_2a_source** ("Here is the original. One English speaker.")
 3. **[SOUND] [DO]** Click **hear the original**. Let about two seconds of the astronaut's
    voice play, then click it again to stop.
-4. **[VO] vo_2b_audience** — *while it plays*, click four or five language chips one at a
+4. **[VO] vo_2b_audience**: *while it plays*, click four or five language chips one at a
    time, slowly (Spanish, Mandarin, Arabic, Hindi, French). The counter climbs.
-5. **[VO] vo_3_fanout** — *while it plays*: click **all**, drag **Languages at once** to
+5. **[VO] vo_3_fanout**: *while it plays*: click **all**, drag **Languages at once** to
    **3**, click **Localize**. Let the queue drain (rows go live, finish green, waiting
    ones start). The fan-out's own audio can murmur under the narration; that's fine.
-6. **[VO] vo_4_failover** — first let the run finish or click **Stop**, click **none**,
+6. **[VO] vo_4_failover**: first let the run finish or click **Stop**, click **none**,
    pick **Spanish and French**, check **Simulate the main voice service failing**, then
    click **Localize**. Let the rows show "via backup voice" and finish green.
 7. **[VO] vo_5a_readalong** ("...in the same voice you heard a moment ago.")
 8. **[SOUND] [DO]** On the Spanish row, click **play & follow**. Let a few seconds play so
    the words highlight in time with the voice. Optionally click **full text**.
-9. **[VO] vo_5b_b2** — *while it plays*, switch to the B2 tab and open a file under
+9. **[VO] vo_5b_b2**: *while it plays*, switch to the B2 tab and open a file under
    `cast/assets/` and a `cast/manifests/` JSON (show the `parent_run_id`, provider, sha).
-10. **[VO] vo_6_close** — switch back to the Cast dashboard (finished green rows, counter).
+10. **[VO] vo_6_close**: switch back to the Cast dashboard (finished green rows, counter).
 
 The two sounds that matter are step 3 (hear the original) and step 8 (the read-along).
 Everything else is narration over silent or lightly-murmuring screen action.
