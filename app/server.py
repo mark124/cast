@@ -14,6 +14,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import queue
@@ -67,11 +68,41 @@ class Job:
         self.q.put(event)
 
 
+_MASTER: tuple | None = None
+_MASTER_LOCK = threading.Lock()
+
+
+def _master():
+    """The transcription every localized cut is derived from, transcribed once.
+
+    The JSON cache returns the transcript instantly but with no run, so a localized
+    manifest would have no parent_run_id to point back to. So on first use we do one
+    real transcription to get a genuine master run id, then reuse it in memory for
+    every job. If that fresh run fails, we fall back to the cached transcript and just
+    leave the lineage unset rather than failing the job.
+    """
+    global _MASTER
+    with _MASTER_LOCK:
+        if _MASTER is None:
+            transcript, run = transcribe(SOURCE_AUDIO, cache_path=CACHE)
+            if run is None:
+                try:
+                    transcript, run = transcribe(SOURCE_AUDIO, cache_path=None)
+                except Exception:
+                    pass
+            _MASTER = (transcript, run)
+        return _MASTER
+
+
 def _run_job(job: Job) -> None:
     try:
-        transcript, run = transcribe(SOURCE_AUDIO, cache_path=CACHE)
-        if job.max_segments:
-            transcript.segments = transcript.segments[: job.max_segments]
+        master_transcript, run = _master()
+        # Copy so per-job max_segments slicing never mutates the shared master.
+        transcript = copy.copy(master_transcript)
+        transcript.segments = (
+            master_transcript.segments[: job.max_segments]
+            if job.max_segments else list(master_transcript.segments)
+        )
         job.emit(type="transcript", segments=len(transcript.segments),
                  duration=round(transcript.duration, 1),
                  preview=[s.text for s in transcript.segments[:3]])
