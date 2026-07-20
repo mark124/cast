@@ -280,7 +280,7 @@ def source():
     mime = "audio/mpeg" if path.suffix == ".mp3" else "audio/wav"
     resp = Response(data, mimetype=mime)
     resp.headers["Accept-Ranges"] = "bytes"
-    resp.headers["Cache-Control"] = "public, max-age=3600"
+    resp.headers["Cache-Control"] = "no-store"  # never serve a stale previous preview
     return resp
 
 
