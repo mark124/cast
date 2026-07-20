@@ -45,6 +45,8 @@ from cast.synthesize import DEFAULT_VOICE, VOICES  # noqa: E402
 from cast.transcribe import transcribe, transcript_from_text  # noqa: E402
 
 SOURCE_AUDIO = ROOT / "work" / "source" / "coleman.wav"
+# The "hear the original" preview starts at the speech, past the video's intro music.
+SOURCE_PREVIEW = ROOT / "work" / "source" / "coleman_preview.mp3"
 CACHE = ROOT / "work" / "transcript.json"
 OUT = ROOT / "work" / "localized"
 
@@ -266,11 +268,17 @@ def segments(code: str):
 
 @app.get("/api/source")
 def source():
-    """Serve the original source audio so a viewer can A/B the real voice vs the dub."""
-    if not SOURCE_AUDIO.exists():
+    """Serve the original source voice for A/B against the dub.
+
+    Prefer the trimmed preview (starts at the speech, past the video's intro music);
+    fall back to the full wav if the preview isn't present.
+    """
+    path = SOURCE_PREVIEW if SOURCE_PREVIEW.exists() else SOURCE_AUDIO
+    if not path.exists():
         return jsonify({"error": "no source"}), 404
-    data = SOURCE_AUDIO.read_bytes()
-    resp = Response(data, mimetype="audio/wav")
+    data = path.read_bytes()
+    mime = "audio/mpeg" if path.suffix == ".mp3" else "audio/wav"
+    resp = Response(data, mimetype=mime)
     resp.headers["Accept-Ranges"] = "bytes"
     resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
