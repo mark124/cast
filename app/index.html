@@ -293,7 +293,9 @@ const srcAudio = new Audio();
 const hearBtn = $('#hearOrig');
 hearBtn.onclick = () => {
   if(srcAudio.paused){
-    if(!srcAudio.src) srcAudio.src = '/api/source';
+    // Cache-buster: the browser may hold an old cached copy of /api/source from a
+    // previous visit, and a page refresh won't evict a click-loaded resource.
+    if(!srcAudio.src) srcAudio.src = '/api/source?v=' + Date.now();
     player.pause();                 // don't overlap a localized clip
     srcAudio.play().catch(()=>{});
   } else srcAudio.pause();
