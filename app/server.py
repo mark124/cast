@@ -42,7 +42,7 @@ from cast.languages import DEMO_WORLD, coverage, get  # noqa: E402
 from cast.localize import localize_language  # noqa: E402
 from cast.storage import b2_backend, b2_sink  # noqa: E402
 from cast.synthesize import DEFAULT_VOICE, VOICES  # noqa: E402
-from cast.transcribe import transcribe  # noqa: E402
+from cast.transcribe import transcribe, transcript_from_text  # noqa: E402
 
 SOURCE_AUDIO = ROOT / "work" / "source" / "coleman.wav"
 CACHE = ROOT / "work" / "transcript.json"
@@ -53,13 +53,14 @@ _JOBS: dict[str, "Job"] = {}
 
 
 class Job:
-    def __init__(self, langs, concurrency, max_segments, break_el, voice):
+    def __init__(self, langs, concurrency, max_segments, break_el, voice, text=""):
         self.id = uuid.uuid4().hex[:12]
         self.langs = langs
         self.concurrency = concurrency
         self.max_segments = max_segments
         self.break_el = break_el
         self.voice = VOICES.get(voice, VOICES[DEFAULT_VOICE])
+        self.text = text
         self.q: queue.Queue = queue.Queue()
         self.done = False
         self.cancelled = threading.Event()
@@ -96,16 +97,23 @@ def _master():
 
 def _run_job(job: Job) -> None:
     try:
-        master_transcript, run = _master()
-        # Copy so per-job max_segments slicing never mutates the shared master.
-        transcript = copy.copy(master_transcript)
-        transcript.segments = (
-            master_transcript.segments[: job.max_segments]
-            if job.max_segments else list(master_transcript.segments)
-        )
+        if job.text:
+            # Localize a line the user typed instead of the demo source. No source
+            # audio, so no transcription master and no lineage — honest for typed input.
+            transcript = transcript_from_text(job.text)
+            run = None
+        else:
+            master_transcript, run = _master()
+            # Copy so per-job max_segments slicing never mutates the shared master.
+            transcript = copy.copy(master_transcript)
+            transcript.segments = (
+                master_transcript.segments[: job.max_segments]
+                if job.max_segments else list(master_transcript.segments)
+            )
         job.emit(type="transcript", segments=len(transcript.segments),
                  duration=round(transcript.duration, 1),
-                 preview=[s.text for s in transcript.segments[:3]])
+                 preview=[s.text for s in transcript.segments[:3]],
+                 custom=bool(job.text))
         # B2 is the pipeline's system of record. Build the backend once (a single
         # preflight), then hand each language its own sink on the shared, thread-safe
         # S3 client. If B2 is unreachable we still localize; we just skip storage.
@@ -169,9 +177,10 @@ def start():
     job = Job(
         langs=langs,
         concurrency=int(body.get("concurrency", 3)),
-        max_segments=int(body.get("max_segments", 3)),
+        max_segments=int(body.get("max_segments", 5)),
         break_el=bool(body.get("break_elevenlabs", False)),
         voice=body.get("voice", DEFAULT_VOICE),
+        text=(body.get("text") or "").strip()[:500],  # cap typed input to bound cost
     )
     _JOBS[job.id] = job
     threading.Thread(target=_run_job, args=(job,), daemon=True).start()
@@ -253,6 +262,18 @@ def segments(code: str):
     if not path.exists():
         return jsonify({"error": "not ready"}), 404
     return Response(path.read_text(encoding="utf-8"), mimetype="application/json")
+
+
+@app.get("/api/source")
+def source():
+    """Serve the original source audio so a viewer can A/B the real voice vs the dub."""
+    if not SOURCE_AUDIO.exists():
+        return jsonify({"error": "no source"}), 404
+    data = SOURCE_AUDIO.read_bytes()
+    resp = Response(data, mimetype="audio/wav")
+    resp.headers["Accept-Ranges"] = "bytes"
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
 
 
 @app.get("/api/languages")

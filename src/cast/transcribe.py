@@ -60,6 +60,24 @@ class Transcript:
         )
 
 
+def transcript_from_text(text: str, *, max_sentences: int = 8) -> Transcript:
+    """Build a Transcript from typed text, with no source audio.
+
+    Splits on sentence-ending punctuation into segments. There is no audio to align
+    to, so every segment carries zero timing and the audio-only assembler lays them
+    end to end. Capped at max_sentences to bound cost on the public endpoint. run_id
+    is None: typed text has no transcription master to trace a manifest back to.
+    """
+    text = (text or "").strip()
+    parts = re.split(r"(?<=[.!?。！？])\s+", text)
+    sentences = [p.strip() for p in parts if p.strip()]
+    if not sentences and text:
+        sentences = [text]
+    sentences = sentences[:max_sentences]
+    segments = [Segment(id=i, start=0.0, end=0.0, text=s) for i, s in enumerate(sentences)]
+    return Transcript(text=text, segments=segments, duration=0.0, run_id=None)
+
+
 def _content_hash(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:

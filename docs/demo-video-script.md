@@ -128,13 +128,6 @@ Optional for beat 5: a new job starts on its own, with no clicks.
 - **Genblaze, meaningfully:** orchestration across providers and steps, the cross-provider
   failover the native primitive cannot do.
 
-## Credit (the in-joke)
-
-The voiceover is generated in Daniel, one of Cast's own preset voices. Lean into it:
-near the close, drop a small on-screen caption reading **"Narrated by Daniel, from Cast."**
-It turns the AI narration into a wink at what the product does, rather than something to
-hide, and it is honest about how the audio was made.
-
 ## Do and don't
 
 - Do run a real job on camera; the video must show the app actually working.
