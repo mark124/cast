@@ -78,8 +78,8 @@ Everything else is narration over silent or lightly-murmuring screen action.
   fails over to a second provider, LMNT, and keeps the same voice. No lost work, no
   restart. And that failover crosses providers, which the underlying SDK cannot do on its
   own, so we built it.
-- **vo_5a_readalong:** Every localized cut comes with a read-along transcript, in the same
-  voice you heard a moment ago.
+- **vo_5a_readalong:** Every localized cut comes with a read-along transcript, highlighting
+  each word as it plays.
 - **vo_5b_b2:** And every file lands in Backblaze B2 as the system of record. B2 stores
   each result content addressed, with a manifest that traces it back to the master it came
   from, so you always know exactly what was generated, and from what.
