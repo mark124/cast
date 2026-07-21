@@ -1,4 +1,4 @@
-# Upstream findings — genblaze
+# Upstream findings, genblaze
 
 Things we hit building Polyglot against `genblaze-core==0.3.4` (the version PyPI ships).
 Each is reproducible; several have a test pinning the behaviour in `tests/test_failover.py`.
@@ -29,7 +29,7 @@ the sync or async path (`:1393-1418`).
 **Why it surprises:** the README frames fallback chains next to multi-provider orchestration
 ("swap Sora → Runway → Veo by changing one line"), which reads as provider failover. Writing
 `.step(elevenlabs, model="eleven_flash_v2_5", fallback_models=["tts-1"])` sends *OpenAI's*
-model slug to ElevenLabs, which 404s into `INVALID_INPUT` — no further fallback, step dies.
+model slug to ElevenLabs, which 404s into `INVALID_INPUT`, no further fallback, step dies.
 
 **Repro:** `tests/test_failover.py::test_sdk_fallback_models_cannot_cross_providers`
 
@@ -44,7 +44,7 @@ build time rather than silent at 3am.
 **Severity:** bug · **Status:** believed unreported
 
 Fallback fires only on `ProviderErrorCode.MODEL_ERROR` (`:1240`). But
-`genblaze_elevenlabs/_errors.py` has no `MODEL_ERROR` branch at all — its mapper covers rate
+`genblaze_elevenlabs/_errors.py` has no `MODEL_ERROR` branch at all, its mapper covers rate
 limit, auth, invalid input, timeout, and 5xx, then falls through to `UNKNOWN`. Since
 `generate()` raises `ProviderError(error_code=map_elevenlabs_error(exc))`, **an ElevenLabs step
 can never emit the one code that triggers fallback.** Configuring `fallback_models` on
@@ -65,9 +65,9 @@ likely affects more than one adapter.
 
 **Severity:** correctness, cross-version · **Status:** fixed on main, live on PyPI
 
-On `0.3.4`, `Pipeline.step()` has no `metadata` parameter — it's `(..., expected_duration_sec,
+On `0.3.4`, `Pipeline.step()` has no `metadata` parameter, it's `(..., expected_duration_sec,
 **params)`. So `metadata={"foo": "bar"}` falls through `**params`, is normalized as a *model*
-param, and lands in `Step.params` — **which is inside the manifest's canonical hash.** Two runs
+param, and lands in `Step.params`, **which is inside the manifest's canonical hash.** Two runs
 producing byte-identical media get different manifest hashes because of a tagging dict.
 
 This is precisely the hazard the SDK already guards against for two other names, in its own
@@ -75,10 +75,10 @@ words (`pipeline.py`, `step()`):
 
 > Reject reserved param names that would silently land in `**params`. […] without this guard
 > they get swallowed by `**params`, normalized as a model param, and either rejected by the
-> upstream provider or — **worse — embedded in the manifest as part of Step.params, drifting
+> upstream provider or, **worse, embedded in the manifest as part of Step.params, drifting
 > the canonical hash.**
 
-`inputs` and `input` are rejected. `metadata` is not — and it's the natural name to reach for,
+`inputs` and `input` are rejected. `metadata` is not, and it's the natural name to reach for,
 because **`main` added `metadata=` as a real kwarg and the GitHub README documents it.** Anyone
 copying current docs onto the current PyPI release corrupts their hashes silently.
 
@@ -96,7 +96,7 @@ forward-looking call fails loudly instead of quietly poisoning provenance. Longe
 
 **Severity:** bug · **Status:** believed unreported (related to #55, distinct)
 
-The lazy module `__getattr__` raises `OptionalDependencyError` — not an `AttributeError` — when
+The lazy module `__getattr__` raises `OptionalDependencyError`, not an `AttributeError`, when
 the parquet extra isn't installed. `hasattr` only swallows `AttributeError`, so capability
 probing explodes rather than returning `False`:
 
@@ -117,7 +117,7 @@ re-raise as `AttributeError` with the install hint in the message.
 **Severity:** minor · **Status:** believed unreported
 
 The OpenAI adapter hard-codes a 10-voice allowlist and rejects anything else **before any HTTP
-call**. OpenAI currently ships 13 — `verse`, `marin`, and `cedar` are unreachable through
+call**. OpenAI currently ships 13, `verse`, `marin`, and `cedar` are unreachable through
 Genblaze even though the API accepts them.
 
 **Suggested fix:** let the provider arbitrate, or make the allowlist advisory (warn, don't
@@ -141,7 +141,7 @@ on PyPI, which imports `pytest` at module scope, so mocks need pytest installed)
 and `Pipeline.metadata()` don't exist and fail per #3.
 
 **Suggested fix:** publish, or version the README/docs to the released line. The mocks-need-pytest
-coupling is worth breaking regardless — it puts a test dependency in the path of anyone building
+coupling is worth breaking regardless, it puts a test dependency in the path of anyone building
 against fakes, which is the behaviour you *want* from people integrating a paid-provider SDK.
 
 ---
@@ -151,7 +151,7 @@ against fakes, which is the behaviour you *want* from people integrating a paid-
 **Severity:** bug, cross-version · **Status:** believed unreported
 
 `genblaze_lmnt/provider.py` does `from lmnt.api import Speech`. The current `lmnt`
-package (2.13.0) has no `lmnt.api` module — that's the pre-2.x layout. Installing
+package (2.13.0) has no `lmnt.api` module, that's the pre-2.x layout. Installing
 `lmnt` today and calling the LMNT provider fails at import inside `generate()`:
 
 ```
@@ -160,7 +160,7 @@ ModuleNotFoundError: No module named 'lmnt.api'
 
 The 2.x SDK is a Stainless-generated client: `from lmnt import Lmnt`, then
 `client.speech.generate(text=, voice=, language=, model="blizzard", format="mp3")`
-and `client.voices.create(file=, name=)` for cloning. Same class of drift as #6 —
+and `client.voices.create(file=, name=)` for cloning. Same class of drift as #6,
 the pinned dependency and the shipped code disagree.
 
 **Suggested fix:** pin `lmnt<2` in the connector's deps, or port the adapter to the
@@ -192,7 +192,7 @@ Observed live: any ElevenLabs step with `with_timestamps=True` throws, code
 failover chain). Workaround in Polyglot: leave `with_timestamps` off and take word
 timings from AssemblyAI on the source side.
 
-**Suggested fix:** read attributes off the model — `response.audio_base_64`,
+**Suggested fix:** read attributes off the model, `response.audio_base_64`,
 `response.alignment.characters`, etc. Same class of SDK drift as #6/#7.
 
 ---
@@ -218,7 +218,7 @@ asset ever transfers to B2 from a Windows producer**. Even the standard
 resolves to `C:Users\...` (drive separator dropped). The only form 0.3.4 round-trips
 is `file://C:/Users/...` (drive in authority, forward slashes).
 
-Note the installed 0.3.4 sink and repo `main` disagree here — `main` uses
+Note the installed 0.3.4 sink and repo `main` disagree here, `main` uses
 `url2pathname`, which handles `as_uri()` correctly. So this is partly a
 release-lag bug, but 0.3.4 is what `pip install` ships and what judges will run.
 
@@ -233,7 +233,7 @@ of `unquote` + `Path`.
 
 **Related, and worse: two connectors want opposite Windows file:// forms.** The
 AssemblyAI connector validates that a `file://` input URL has an empty/`localhost`
-netloc — i.e. it *requires* `file:///C:/...` (as_uri) and rejects `file://C:/...`
+netloc, i.e. it *requires* `file:///C:/...` (as_uri) and rejects `file://C:/...`
 with `file:// URL must have empty or 'localhost' netloc; got 'C:'`. The 0.3.4 sink
 requires the exact opposite (`file://C:/...`). So a Windows pipeline can't use one
 URL convention throughout: input to AssemblyAI must be `as_uri()`, output to the
@@ -247,7 +247,7 @@ contradiction.
 
 **Type:** new connector · **Status:** built, tested against the live API
 
-Genblaze ships no Anthropic connector, so Claude can't be composed into a Pipeline —
+Genblaze ships no Anthropic connector, so Claude can't be composed into a Pipeline,
 only OpenAI, Google, and NVIDIA cover the chat/LLM modality. `NvidiaChatProvider`'s own
 docstring anticipates the gap:
 
